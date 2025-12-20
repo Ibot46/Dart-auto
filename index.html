@@ -1,440 +1,126 @@
 <!DOCTYPE html><html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>🎯 Dart Scorer Pro</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%); color: white; min-height: 100vh; padding: 1rem; overflow-x: hidden; }
-        .container { max-width: 600px; margin: 0 auto; }
-        h1 { text-align: center; font-size: 2rem; margin-bottom: 0.5rem; color: #22c55e; }
-        .subtitle { text-align: center; color: #94a3b8; margin-bottom: 2rem; font-size: 0.9rem; }
-        button { border: none; cursor: pointer; font-size: 1rem; font-weight: bold; border-radius: 0.75rem; transition: all 0.2s; font-family: inherit; }
-        button:active { transform: scale(0.95); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-primary { background: #22c55e; color: white; padding: 1rem; width: 100%; margin-bottom: 1rem; }
-        .btn-primary:hover { background: #16a34a; }
-        .btn-secondary { background: #475569; color: white; padding: 1rem; width: 100%; margin-bottom: 1rem; }
-        .btn-secondary:hover { background: #334155; }
-        .card { background: #1e293b; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
-        .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
-        .scoreboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
-        .player-card { background: #1e293b; padding: 1rem; border-radius: 0.75rem; text-align: center; }
-        .player-card.active { background: #22c55e; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4); }
-        .player-name { font-size: 0.875rem; opacity: 0.8; margin-bottom: 0.25rem; }
-        .player-score { font-size: 2rem; font-weight: bold; }
-        .throw-display { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
-        .throw-box { background: #334155; border: 2px dashed #475569; border-radius: 0.75rem; height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; }
-        .throw-box.filled { background: #22c55e; border: none; }
-        .throw-desc { font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem; }
-        input[type="text"] { width: 100%; padding: 0.75rem; background: #334155; border: none; border-radius: 0.5rem; color: white; font-size: 1rem; margin-bottom: 0.5rem; }
-        .mode-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
-        .tab-btn { padding: 0.75rem; background: #334155; color: #94a3b8; }
-        .tab-btn.active-single { background: #22c55e; color: white; }
-        .tab-btn.active-double { background: #3b82f6; color: white; }
-        .tab-btn.active-triple { background: #a855f7; color: white; }
-        .number-btn { padding: 0.75rem; font-weight: bold; }
-        .mode-single .number-btn { background: #22c55e; color: white; }
-        .mode-double .number-btn { background: #3b82f6; color: white; }
-        .mode-triple .number-btn { background: #a855f7; color: white; }
-        .special-btn { padding: 0.75rem; font-weight: bold; }
-        .btn-25 { background: #eab308; color: white; }
-        .btn-bull { background: #dc2626; color: white; }
-        .btn-miss { background: #475569; color: white; }
-        .checkout-hint { background: #713f12; border: 2px solid #ca8a04; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; }
-        .history-item { padding: 0.5rem 0; border-bottom: 1px solid #334155; }
-        .history-item.bust { color: #ef4444; }
-        .hidden { display: none !important; }
-        video { width: 100%; border-radius: 0.75rem; background: black; margin-bottom: 1rem; }
-        label { display: block; font-weight: bold; margin-bottom: 0.5rem; font-size: 0.875rem; }
-        .feature-list { list-style: none; font-size: 0.875rem; color: #cbd5e1; }
-        .feature-list li { padding: 0.25rem 0; }
-        .toggle-switch { width: 56px; height: 32px; background: #475569; border-radius: 16px; position: relative; cursor: pointer; transition: background 0.3s; }
-        .toggle-switch.active { background: #22c55e; }
-        .toggle-knob { width: 24px; height: 24px; background: white; border-radius: 50%; position: absolute; top: 4px; left: 4px; transition: transform 0.3s; }
-        .toggle-switch.active .toggle-knob { transform: translateX(24px); }
-        .flex-between { display: flex; justify-content: space-between; align-items: center; }
-        .small { font-size: 0.85rem; opacity: 0.9; }
-        .inline-btn { padding: 0.5rem 0.75rem; border-radius: 0.5rem; background: #475569; color: white; }
-        .number-input { width: 80px; padding: 0.5rem; border-radius: 0.5rem; background: #334155; color: white; border: none; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dart Scorer Pro (Voice)</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#111; color:#fff; text-align:center; }
+    button { padding:10px 16px; margin:6px; font-size:16px; }
+    .throw { margin:4px; }
+  </style>
 </head>
-<body>
-    <div class="container">
-        <div id="screen-home">
-            <h1>🎯 Dart Scorer Pro</h1>
-            <p class="subtitle">KI-gestützte Punkteerkennung (Voice & Bot ergänzt)</p>
-            <button class="btn-primary" onclick="showSetup()">📸 Neues Spiel starten</button>
-            <button class="btn-secondary" onclick="showSettings()">⚙️ Einstellungen</button>
-            <button class="btn-secondary" onclick="showStats()">📊 Statistiken</button>
-            <div class="card">
-                <h3 style="margin-bottom: 1rem;">Features:</h3>
-                <ul class="feature-list">
-                    <li>✓ Sprachsteuerung für Würfe (Deutsch)</li>
-                    <li>✓ Bot-Gegner mit einstellbarem Durchschnitt</li>
-                    <li>✓ Manuelle Eingabe & Spezialfelder</li>
-                    <li>✓ Bust-Regel & Checkout-Hinweise</li>
-                </ul>
-            </div>
-        </div>
-        <div id="screen-setup" class="hidden">
-            <h2 style="margin-bottom: 1.5rem;">Spiel-Setup</h2>
-            <div class="card">
-                <label>Spielmodus</label>
-                <div class="grid-3">
-                    <button class="tab-btn active-single" onclick="setGameMode(301)">301</button>
-                    <button class="tab-btn" onclick="setGameMode(501)">501</button>
-                    <button class="tab-btn" onclick="setGameMode(701)">701</button>
-                </div>
-            </div>
-            <div class="card">
-                <label>Finish-Modus</label>
-                <div class="grid-2">
-                    <button class="tab-btn" onclick="setFinishMode('straightOut')">Straight Out</button>
-                    <button class="tab-btn active-single" onclick="setFinishMode('doubleOut')">Double Out</button>
-                </div>
-            </div>
-            <div class="card">
-                <label>Spieler</label>
-                <div id="player-inputs"></div>
-                <div style="display:flex; gap:0.5rem;">
-                    <button class="inline-btn" onclick="addPlayer()">+ Spieler hinzufügen</button>
-                    <button class="inline-btn" onclick="addBot()">+ Bot hinzufügen</button>
-                </div>
-            </div>
-            <div class="grid-2">
-                <button class="btn-secondary" onclick="showHome()">Zurück</button>
-                <button class="btn-primary" onclick="startGame()">Spiel starten</button>
-            </div>
-        </div>
-        <div id="screen-settings" class="hidden">
-            <h2 style="margin-bottom: 1.5rem;">Einstellungen</h2>
-            <div class="card">
-                <div class="flex-between">
-                    <div><strong>🎤 Text-to-Speech</strong></div>
-                    <div class="toggle-switch active" id="tts-toggle" onclick="toggleTTS()">
-                        <div class="toggle-knob"></div>
-                    </div>
-                </div>
-            </div>
-            <button class="btn-secondary" onclick="showHome()">Zurück</button>
-        </div>
-        <div id="screen-stats" class="hidden">
-            <h2 style="margin-bottom: 1.5rem;">Statistiken</h2>
-            <div id="stats-content"></div>
-            <button class="btn-secondary" onclick="showHome()">Zurück</button>
-        </div>
-        <div id="screen-game" class="hidden">
-            <div class="scoreboard" id="scoreboard"></div>
-            <div class="card">
-                <div style="font-size: 0.875rem; opacity: 0.8; margin-bottom: 0.5rem;">Aktueller Wurf:</div>
-                <div class="throw-display">
-                    <div class="throw-box" id="throw-0">?</div>
-                    <div class="throw-box" id="throw-1">?</div>
-                    <div class="throw-box" id="throw-2">?</div>
-                </div>
-                <div id="throw-total" style="text-align: center;"></div>
-            </div>
-            <div id="checkout-hint" class="checkout-hint hidden">
-                <div style="font-weight: bold; font-size: 0.875rem;">💡 Checkout-Vorschlag:</div>
-                <div id="checkout-text" style="font-size: 1.125rem; margin-top: 0.25rem;"></div>
-            </div>
-            <div id="camera-section" class="hidden">
-                <video id="video" autoplay playsinline></video>
-                <canvas id="canvas" style="display: none;"></canvas>
-                <div class="grid-2" style="margin-bottom: 1rem;">
-                    <button class="btn-primary" onclick="captureAndAnalyze()">📸 Foto & Erkennung</button>
-                    <button style="background: #dc2626; color: white; padding: 0.75rem; border-radius: 0.75rem;" onclick="stopCamera()">✕</button>
-                </div>
-            </div>
-            <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
-                <button id="camera-btn" class="btn-primary" onclick="startCamera()">📷 Kamera aktivieren (KI-Erkennung)</button>
-                <button class="btn-primary" onclick="startVoiceInput()">🎤 Spracheingabe</button>
-            </div>
-            <div class="mode-tabs">
-                <button class="tab-btn active-single" onclick="setInputMode('single')">Single</button>
-                <button class="tab-btn" onclick="setInputMode('double')">Double</button>
-                <button class="tab-btn" onclick="setInputMode('triple')">Triple</button>
-            </div>
-            <div class="card mode-single" id="number-grid">
-                <div style="font-weight: bold; margin-bottom: 0.75rem;" id="mode-label">Single Felder (1-20)</div>
-                <div class="grid-5" style="margin-bottom: 1rem;" id="numbers"></div>
-                <div style="font-weight: bold; margin-bottom: 0.5rem; font-size: 0.875rem;">Spezial-Felder</div>
-                <div class="grid-3">
-                    <button class="special-btn btn-25" onclick="addSpecial(25)">25</button>
-                    <button class="special-btn btn-bull" onclick="addSpecial(50)">BULL (50)</button>
-                    <button class="special-btn btn-miss" onclick="addSpecial(0)">Miss (0)</button>
-                </div>
-            </div>
-            <div class="grid-2" style="margin-bottom: 1rem;">
-                <button style="background: #eab308; color: white; padding: 0.75rem; border-radius: 0.75rem;" onclick="resetThrow()">🔄 Zurücksetzen</button>
-                <button style="background: #dc2626; color: white; padding: 0.75rem; border-radius: 0.75rem;" onclick="endGame()">Beenden</button>
-            </div>
-            <div class="card" id="history-section" style="display: none;">
-                <div style="font-weight: bold; margin-bottom: 0.5rem; font-size: 0.875rem;">Letzte Würfe:</div>
-                <div id="history"></div>
-            </div>
-        </div>
-    </div>
-    <script>
-        // --- State ---
-        let state = {
-            screen: 'home',
-            gameMode: 501,
-            finishMode: 'doubleOut',
-            players: [{name: 'Spieler 1', score: 501, history: []}],
-            currentPlayer: 0,
-            currentThrow: [],
-            inputMode: 'single',
-            ttsEnabled: true,
-            camera: false
-        };const dartboardOrder = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+<body><h1>🎯 Dart Scorer Pro</h1><button onclick="toggleVoice()">🎤 Sprache AN / AUS</button> <button onclick="finishTurn()">➡️ Zug beenden</button>
 
-    function speak(text) { if (!state.ttsEnabled || !window.speechSynthesis) return; const u = new SpeechSynthesisUtterance(text); u.lang = 'de-DE'; u.rate = 0.95; window.speechSynthesis.speak(u); }
+<h2 id="status">Sprache: AUS</h2>
+<div id="throws"></div><script>
+let state = {
+  currentThrow: [],
+  inputMode: 'single'
+};
 
-    // --- Screen handling ---
-    function showScreen(s) { ['home','setup','settings','stats','game'].forEach(x => document.getElementById(`screen-${x}`).classList.add('hidden')); document.getElementById(`screen-${s}`).classList.remove('hidden'); state.screen = s; }
-    function showHome(){ showScreen('home'); }
-    function showSetup(){ showScreen('setup'); renderPlayerInputs(); }
-    function showSettings(){ showScreen('settings'); }
-    function showStats(){ showScreen('stats'); renderStats(); }
+let recognition;
+let voiceActive = false;
+let lastMode = 'single'; // merkt sich Triple / Double
 
-    // --- Game settings ---
-    function setGameMode(m){ state.gameMode = m; document.querySelectorAll('#screen-setup .grid-3 button').forEach((b,i)=>b.className = 'tab-btn' + ([301,501,701][i]===m ? ' active-single' : '')); }
-    function setFinishMode(m){ state.finishMode = m; document.querySelectorAll('#screen-setup .grid-2 button').forEach((b,i)=>b.className = 'tab-btn' + (['straightOut','doubleOut'][i]===m ? ' active-single' : '')); }
+function toggleVoice() {
+  if (!('webkitSpeechRecognition' in window)) {
+    alert('Nur in Chrome / Android Chrome verfügbar');
+    return;
+  }
 
-    // --- Players UI ---
-    function renderPlayerInputs(){
-        document.getElementById('player-inputs').innerHTML = state.players.map((p,i) => `
-            <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem; align-items:center;">
-                <input type="text" value="${p.name}" onchange="state.players[${i}].name=this.value" style="flex:1; padding:0.5rem; background:#334155; color:white; border:none; border-radius:0.5rem;">
-                ${p.bot ? `<input type="number" class="number-input" value="${p.average || 35}" min="1" max="180" onchange="state.players[${i}].average=Number(this.value)">` : ''}
-                ${state.players.length>1 ? `<button style="background:#dc2626; color:white; padding:0.5rem 0.75rem; border-radius:0.5rem;" onclick="removePlayer(${i})">✕</button>` : ''}
-            </div>
-        `).join('');
-    }
+  if (voiceActive) {
+    recognition.stop();
+    voiceActive = false;
+    document.getElementById('status').innerText = 'Sprache: AUS';
+    return;
+  }
 
-    function addPlayer(){ if (state.players.length < 6) { state.players.push({name:`Spieler ${state.players.length+1}`, score: state.gameMode, history: []}); renderPlayerInputs(); } }
-    function addBot(){ if (state.players.length < 6) { state.players.push({name:`Bot ${state.players.length+1}`, score: state.gameMode, history: [], bot: true, average: 35}); renderPlayerInputs(); } }
-    function removePlayer(i){ state.players.splice(i,1); renderPlayerInputs(); }
+  recognition = new webkitSpeechRecognition();
+  recognition.lang = 'de-DE';
+  recognition.continuous = true; // 🔥 dauerhaft
+  recognition.interimResults = false;
 
-    function toggleTTS(){ state.ttsEnabled = !state.ttsEnabled; document.getElementById('tts-toggle').classList.toggle('active'); }
+  recognition.onresult = (event) => {
+    const text = event.results[event.results.length - 1][0].transcript.toLowerCase();
+    console.log('🎤', text);
+    parseVoice(text);
+  };
 
-    // --- Start / Render Game ---
-    function startGame(){
-        state.players = state.players.map(p => ({...p, score: state.gameMode, history: []}));
-        state.currentPlayer = 0; state.currentThrow = [];
-        renderGame(); showScreen('game');
-        speak(`Neues Spiel ${state.gameMode}. ${state.players[0].name} beginnt`);
-        // falls erster Spieler ein Bot ist
-        if (state.players[state.currentPlayer].bot) setTimeout(botThrow, 1000);
-    }
+  recognition.onend = () => {
+    if (voiceActive) recognition.start(); // 🔁 sofort neu starten
+  };
 
-    function renderGame(){
-        document.getElementById('scoreboard').innerHTML = state.players.map((p,i) => `<div class="player-card ${i===state.currentPlayer ? 'active' : ''}"><div class="player-name">${p.name}${p.bot ? ' (Bot)' : ''}</div><div class="player-score">${p.score}</div></div>`).join('');
+  recognition.start();
+  voiceActive = true;
+  document.getElementById('status').innerText = 'Sprache: AN (einfach Zahl sagen)';
+}
 
-        for (let i=0;i<3;i++){
-            const b = document.getElementById(`throw-${i}`);
-            if (state.currentThrow[i]){ b.className = 'throw-box filled'; b.innerHTML = `<div>${state.currentThrow[i].score}</div><div class="throw-desc">${state.currentThrow[i].description}</div>`; } else { b.className = 'throw-box'; b.innerHTML = '?'; }
-        }
+function parseVoice(text) {
+  if (state.currentThrow.length >= 3) return;
 
-        const t = state.currentThrow.reduce((s,x)=>s + x.score, 0);
-        document.getElementById('throw-total').innerHTML = state.currentThrow.length > 0 ? `Gesamt: ${t} Punkte` : '';
+  if (text.includes('triple')) {
+    lastMode = 'triple';
+    speak('Triple');
+    return;
+  }
 
-        const p = state.players[state.currentPlayer];
-        const c = getCheckoutSuggestion(p.score);
-        if (c){ document.getElementById('checkout-hint').classList.remove('hidden'); document.getElementById('checkout-text').textContent = c; } else { document.getElementById('checkout-hint').classList.add('hidden'); }
+  if (text.includes('double')) {
+    lastMode = 'double';
+    speak('Double');
+    return;
+  }
 
-        if (p.history.length > 0){ document.getElementById('history-section').style.display = 'block'; document.getElementById('history').innerHTML = p.history.slice(-5).reverse().map(h => `<div class="history-item ${h.bust ? 'bust' : ''}">${h.throws.map(x => x.description).join(' + ')} = ${h.totalScore} ${h.bust ? '(BUST)' : ''} → ${h.remaining}</div>`).join(''); }
+  if (text.includes('bull')) {
+    addThrow(50, 'Bull');
+    lastMode = 'single';
+    return;
+  }
 
-        renderNumberGrid();
-    }
+  const num = extractNumber(text);
+  if (!num) return;
 
-    // --- Number grid / input mode ---
-    function renderNumberGrid(){ document.getElementById('numbers').innerHTML = dartboardOrder.map(n => `<button class="number-btn" onclick="addThrow(${n})">${state.inputMode === 'double' ? 'D' : state.inputMode === 'triple' ? 'T' : ''}${n}</button>`).join(''); document.getElementById('number-grid').className = 'card mode-' + state.inputMode; document.getElementById('mode-label').textContent = state.inputMode === 'single' ? 'Single Felder (1-20)' : state.inputMode === 'double' ? 'Double Felder (D1-D20)' : 'Triple Felder (T1-T20)'; }
-    function setInputMode(m){ state.inputMode = m; document.querySelectorAll('.mode-tabs button').forEach((b,i)=>b.className = 'tab-btn' + (['single','double','triple'][i]===m ? ' active-' + m : '')); renderNumberGrid(); }
+  let score = num;
+  let label = num;
 
-    // --- Throw handling ---
-    function addThrow(n){ if (state.currentThrow.length >= 3) return; let s=0,d=''; if (state.inputMode === 'single'){ s = n; d = `${n}`; } else if (state.inputMode === 'double'){ s = n * 2; d = `Double ${n}`; } else if (state.inputMode === 'triple'){ s = n * 3; d = `Triple ${n}`; } state.currentThrow.push({score: s, description: d}); speak(`${d}, ${s} Punkte`); if (state.currentThrow.length === 3) setTimeout(finishTurn, 600); else renderGame(); }
+  if (lastMode === 'triple') {
+    score = num * 3;
+    label = 'Triple ' + num;
+  } else if (lastMode === 'double') {
+    score = num * 2;
+    label = 'Double ' + num;
+  }
 
-    function addSpecial(s){ if (state.currentThrow.length >= 3) return; let d=''; if (s===50) d='Bull'; else if (s===25) d='25'; else d='Miss'; state.currentThrow.push({score:s, description:d}); speak(d); if (state.currentThrow.length === 3) setTimeout(finishTurn, 600); else renderGame(); }
+  addThrow(score, label);
+  lastMode = 'single'; // 🔁 zurücksetzen
+}
 
-    function finishTurn(){
-        const t = state.currentThrow.reduce((s,x)=>s + x.score, 0);
-        const p = state.players[state.currentPlayer];
-        const n = p.score - t;
-        let b = false;
+function extractNumber(text) {
+  const match = text.match(/\d+/);
+  if (!match) return null;
+  const n = parseInt(match[0]);
+  return n >= 0 && n <= 20 ? n : null;
+}
 
-        if (n < 0){ b = true; speak('Bust! Überwurf'); }
-        else if (n === 0){
-            if (state.finishMode === 'doubleOut'){
-                const l = state.currentThrow[state.currentThrow.length - 1];
-                if (!l || (!l.description.startsWith('Double') && l.description !== 'Bull')){ b = true; speak('Bust! Muss mit Double finishen'); }
-                else { speak(`Checkout! ${p.name} gewinnt!`); }
-            } else { speak(`Checkout! ${p.name} gewinnt!`); }
-        } else if (n === 1 && state.finishMode === 'doubleOut') { b = true; speak('Bust! Ein Punkt übrig'); }
+function addThrow(score, label) {
+  if (state.currentThrow.length >= 3) return;
 
-        if (!b){ p.score = n; p.history.push({throws: [...state.currentThrow], totalScore: t, remaining: n}); }
-        else { p.history.push({throws: [...state.currentThrow], totalScore: 0, remaining: p.score, bust: true}); }
+  state.currentThrow.push({ score, label });
+  const div = document.createElement('div');
+  div.className = 'throw';
+  div.innerText = '🎯 ' + label + ' = ' + score;
+  document.getElementById('throws').appendChild(div);
+}
 
-        state.currentThrow = [];
+function finishTurn() {
+  state.currentThrow = [];
+  document.getElementById('throws').innerHTML = '';
+  speak('Nächster Zug');
+}
 
-        if (n !== 0){
-            // nächster Spieler
-            state.currentPlayer = (state.currentPlayer + 1) % state.players.length;
-            speak(state.players[state.currentPlayer].name);
-        }
-
-        renderGame();
-
-        // wenn nächster Spieler ein Bot ist -> Botzug
-        if (state.players[state.currentPlayer].bot) setTimeout(botThrow, 900);
-    }
-
-    function resetThrow(){ state.currentThrow = []; speak('Wurf zurückgesetzt'); renderGame(); }
-    function endGame(){ if (confirm('Spiel wirklich beenden?')){ stopCamera(); showHome(); } }
-
-    function getCheckoutSuggestion(s){ if (s > 170) return null; if (s === 170) return 'T20, T20, Bull'; if (s === 167) return 'T20, T19, Bull'; if (s === 164) return 'T20, T18, Bull'; if (s === 161) return 'T20, T17, Bull'; if (s === 160) return 'T20, T20, D20'; if (s === 158) return 'T20, T20, D19'; if (s <= 40 && s % 2 === 0) return `D${s/2}`; if (s === 50) return 'Bull'; return null; }
-
-    // --- Camera (unchanged basic impl) ---
-    async function startCamera(){
-        try{
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ alert('Kamera-API nicht verfügbar. Bitte HTTPS verwenden oder anderen Browser.'); return; }
-            let stream = null;
-            try{ stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); }
-            catch(e1){ try{ stream = await navigator.mediaDevices.getUserMedia({ video: true }); } catch(e2){ throw new Error('Keine Kamera gefunden'); } }
-            const video = document.getElementById('video'); video.srcObject = stream;
-            await new Promise(resolve => { video.onloadedmetadata = () => { video.play(); resolve(); }; });
-            document.getElementById('camera-section').classList.remove('hidden'); document.getElementById('camera-btn').classList.add('hidden'); state.camera = true;
-        } catch(e){ console.error('Kamera-Fehler:', e); alert('Kamera-Zugriff fehlgeschlagen!\n\nMögliche Lösungen:\n- Kamera-Berechtigung in Browser erlauben\n- HTTPS verwenden (nicht HTTP)\n- Anderen Browser testen (Chrome empfohlen)\n- Manuelle Eingabe nutzen'); }
-    }
-    function stopCamera(){ const v = document.getElementById('video'); if (v.srcObject) v.srcObject.getTracks().forEach(t => t.stop()); document.getElementById('camera-section').classList.add('hidden'); document.getElementById('camera-btn').classList.remove('hidden'); state.camera = false; }
-
-    // --- Simple placeholder image analysis (keeps previous random but left minimal) ---
-    function captureAndAnalyze(){ if (state.currentThrow.length >= 3) return; const c = document.getElementById('canvas'); const v = document.getElementById('video'); c.width = v.videoWidth; c.height = v.videoHeight; const x = c.getContext('2d'); x.drawImage(v,0,0);
-        // Hinweis: dies ist nur ein Platzhalter. Für echte Erkennung wäre OpenCV/Server nötig.
-        const r = Math.random(); let s,d; if (r < 0.05){ s = 50; d = 'Bull'; } else if (r < 0.1){ s = 25; d = '25'; } else { const n = dartboardOrder[Math.floor(Math.random()*dartboardOrder.length)]; const m = ['single','single','single','double','triple'][Math.floor(Math.random()*5)]; if (m==='triple'){ s = n*3; d = `Triple ${n}`; } else if (m==='double'){ s = n*2; d = `Double ${n}`; } else { s = n; d = `${n}`; } }
-        state.currentThrow.push({score:s, description:d}); speak(`${d}, ${s} Punkte`); if (state.currentThrow.length === 3) setTimeout(finishTurn,600); else renderGame(); }
-
-    // --- Stats ---
-    function renderStats(){ const a = state.players.flatMap(p => p.history.flatMap(h => h.throws)); const v = a.length ? (a.reduce((s,t)=>s + t.score,0) / a.length).toFixed(1) : 0; document.getElementById('stats-content').innerHTML = state.players.map(p => `<div class="card"><h3 style="margin-bottom:1rem;font-size:1.25rem;">${p.name}</h3><div class="grid-2" style="gap:0.5rem;font-size:0.875rem;"><div>Würfe: ${p.history.length * 3}</div><div>Durchschnitt: ${v}</div><div>Restpunkte: ${p.score}</div><div>Busts: ${p.history.filter(h => h.bust).length}</div></div></div>`).join(''); }
-
-    // --- Voice recognition ---
-    let recognition;
-    function startVoiceInput(){
-        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!Speech){ alert('Spracherkennung nicht unterstützt. Verwende Chrome/Edge auf Android.'); return; }
-        recognition = new Speech();
-        recognition.lang = 'de-DE';
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        speak('Sprich deinen Wurf');
-        recognition.onresult = (event) => {
-            const text = event.results[0][0].transcript.toLowerCase();
-            console.log('Erkannt:', text);
-            parseVoiceInput(text);
-        };
-        recognition.onerror = (e) => { console.error('Speech error', e); speak('Spracherkennung fehlgeschlagen'); };
-        recognition.onend = () => { /* optional: feedback */ };
-        recognition.start();
-    }
-
-    function parseVoiceInput(text){
-        // akzeptiert: 'triple 20', 'dreifach 20', 'double 10', 'doppel 10', '20', 'bull', 'miss'; mehrere mit ',' oder 'und'
-        const parts = text.split(/,|und/);
-        for (let part of parts){
-            if (state.currentThrow.length >= 3) break;
-            part = part.trim();
-            if (!part) continue;
-            if (part.includes('bull')){ addSpecial(50); continue; }
-            if (part.includes('miss')){ addSpecial(0); continue; }
-            // triple synonyms
-            if (part.match(/(triple|dreifach|dreimal|trippel)/)){
-                const n = extractNumber(part);
-                if (n) { state.inputMode = 'triple'; addThrow(n); }
-                continue;
-            }
-            // double synonyms
-            if (part.match(/(double|doppel|doppelt|zweifach)/)){
-                const n = extractNumber(part);
-                if (n) { state.inputMode = 'double'; addThrow(n); }
-                continue;
-            }
-            // plain number
-            const n = extractNumber(part);
-            if (n){ state.inputMode = 'single'; addThrow(n); }
-        }
-    }
-
-    function extractNumber(text){ const match = text.match(/(\d{1,3})/); if (!match) return null; const n = parseInt(match[0]); return n >= 1 && n <= 20 ? n : (n === 25 ? 25 : n === 50 ? 50 : null); }
-
-    // --- Bot logic ---
-    function botThrow(){
-        const bot = state.players[state.currentPlayer];
-        if (!bot || !bot.bot) return;
-        state.currentThrow = [];
-
-        // einfache, realistische Würfe basierend auf durchschnitt
-        // wir zerlegen durchschnitt in 3 Würfe mit etwas Zufall
-        let avg = bot.average || 35;
-        // Zielpunkte die der Bot in diesem Turn anstrebt (leicht schwanken)
-        let target = Math.max(0, Math.round(avg + (Math.random()*10 - 5)));
-
-        // Wenn Restpunkte klein -> versuche finish
-        const remaining = bot.score;
-        if (remaining <= 170){
-            // einfache heuristik: wenn möglich versucht Bot Checkout
-            const c = getCheckoutSuggestion(remaining);
-            if (c && Math.random() > 0.4){
-                // versuche checkout: wir simulieren die nötigen Würfe (vereinfachte Umsetzung)
-                const parts = c.split(',').map(s => s.trim());
-                for (let part of parts){
-                    if (state.currentThrow.length >= 3) break;
-                    if (part.startsWith('T')){ const n = parseInt(part.replace('T','')); state.currentThrow.push({score: n*3, description:`Triple ${n}`}); }
-                    else if (part.startsWith('D')){ const n = parseInt(part.replace('D','')); state.currentThrow.push({score: n*2, description:`Double ${n}`}); }
-                    else if (part.toLowerCase() === 'bull'){ state.currentThrow.push({score:50, description:'Bull'}); }
-                    else { const n = parseInt(part); state.currentThrow.push({score:n, description:`${n}`}); }
-                }
-                speak(`${bot.name} versucht Checkout`);
-                renderGame();
-                setTimeout(finishTurn, 900);
-                return;
-            }
-        }
-
-        // Normale Verteilung der 3 Würfe
-        let remainingToAllocate = target;
-        for (let i=0;i<3;i++){
-            if (remainingToAllocate <= 0){
-                // zufälliger kleiner Wurf
-                const n = Math.max(1, Math.round(Math.random()*20));
-                const mult = Math.random();
-                if (mult > 0.8) state.currentThrow.push({score: n*3, description:`Triple ${n}`});
-                else if (mult > 0.5) state.currentThrow.push({score: n*2, description:`Double ${n}`});
-                else state.currentThrow.push({score: n, description:`${n}`});
-            } else {
-                // teile remainingToAllocate auf
-                const part = Math.max(1, Math.round(remainingToAllocate / (3 - i) + (Math.random()*4 -2)));
-                // wandle in n & multiplier
-                if (part > 60){ // zu groß -> triple high value
-                    const n = Math.min(20, Math.round(part / 3)); state.currentThrow.push({score: n*3, description:`Triple ${n}`}); remainingToAllocate -= n*3;
-                } else if (part > 30){ const n = Math.min(20, Math.round(part / 2)); state.currentThrow.push({score: n*2, description:`Double ${n}`}); remainingToAllocate -= n*2; }
-                else { const n = Math.min(20, Math.round(part)); state.currentThrow.push({score: n, description:`${n}`}); remainingToAllocate -= n; }
-            }
-        }
-
-        speak(`${bot.name} wirft`);
-        renderGame();
-        setTimeout(finishTurn, 900);
-    }
-
-    // --- Init ---
-    renderPlayerInputs();
-</script>
-
-</body>
+function speak(text) {
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'de-DE';
+  speechSynthesis.speak(u);
+}
+</script></body>
 </html>
