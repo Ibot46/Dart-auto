@@ -13,114 +13,92 @@
 
 <h2 id="status">Sprache: AUS</h2>
 <div id="throws"></div><script>
-let state = {
-  currentThrow: [],
-  inputMode: 'single'
-};
-
 let recognition;
-let voiceActive = false;
-let lastMode = 'single'; // merkt sich Triple / Double
+let speechActive = false;
+let pendingMode = 'single';
 
-function toggleVoice() {
-  if (!('webkitSpeechRecognition' in window)) {
-    alert('Nur in Chrome / Android Chrome verfügbar');
+function initSpeech() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    alert('Spracherkennung nur mit Chrome/Edge möglich');
     return;
   }
 
-  if (voiceActive) {
-    recognition.stop();
-    voiceActive = false;
-    document.getElementById('status').innerText = 'Sprache: AUS';
-    return;
-  }
-
-  recognition = new webkitSpeechRecognition();
+  recognition = new SR();
   recognition.lang = 'de-DE';
-  recognition.continuous = true; // 🔥 dauerhaft
   recognition.interimResults = false;
+  recognition.continuous = false; // wichtig für Mobile!
 
   recognition.onresult = (event) => {
-    const text = event.results[event.results.length - 1][0].transcript.toLowerCase();
-    console.log('🎤', text);
-    parseVoice(text);
+    const text = event.results[event.results.length - 1][0].transcript
+      .toLowerCase()
+      .trim();
+    handleSpeech(text);
   };
 
   recognition.onend = () => {
-    if (voiceActive) recognition.start(); // 🔁 sofort neu starten
+    // 🔥 DAS ist der entscheidende Fix
+    if (speechActive) {
+      setTimeout(() => {
+        try {
+          recognition.start();
+        } catch (e) {}
+      }, 100);
+    }
   };
 
-  recognition.start();
-  voiceActive = true;
-  document.getElementById('status').innerText = 'Sprache: AN (einfach Zahl sagen)';
+  recognition.onerror = () => {
+    // Fehler ignorieren & neu starten
+    if (speechActive) {
+      try {
+        recognition.stop();
+      } catch {}
+    }
+  };
 }
 
-function parseVoice(text) {
-  if (state.currentThrow.length >= 3) return;
+function startSpeech() {
+  if (!recognition) initSpeech();
+  speechActive = true;
+  try {
+    recognition.start();
+  } catch {}
+}
+
+function stopSpeech() {
+  speechActive = false;
+  try {
+    recognition.stop();
+  } catch {}
+}
+
+function handleSpeech(text) {
+  console.log('🎤', text);
 
   if (text.includes('triple')) {
-    lastMode = 'triple';
+    pendingMode = 'triple';
     speak('Triple');
     return;
   }
 
   if (text.includes('double')) {
-    lastMode = 'double';
+    pendingMode = 'double';
     speak('Double');
     return;
   }
 
   if (text.includes('bull')) {
-    addThrow(50, 'Bull');
-    lastMode = 'single';
+    addSpecial(50);
+    pendingMode = 'single';
     return;
   }
 
-  const num = extractNumber(text);
-  if (!num) return;
-
-  let score = num;
-  let label = num;
-
-  if (lastMode === 'triple') {
-    score = num * 3;
-    label = 'Triple ' + num;
-  } else if (lastMode === 'double') {
-    score = num * 2;
-    label = 'Double ' + num;
+  const num = parseInt(text.replace(/[^0-9]/g, ''));
+  if (!isNaN(num) && num >= 0 && num <= 20) {
+    state.inputMode = pendingMode;
+    addThrow(num);
+    pendingMode = 'single';
   }
-
-  addThrow(score, label);
-  lastMode = 'single'; // 🔁 zurücksetzen
-}
-
-function extractNumber(text) {
-  const match = text.match(/\d+/);
-  if (!match) return null;
-  const n = parseInt(match[0]);
-  return n >= 0 && n <= 20 ? n : null;
-}
-
-function addThrow(score, label) {
-  if (state.currentThrow.length >= 3) return;
-
-  state.currentThrow.push({ score, label });
-  const div = document.createElement('div');
-  div.className = 'throw';
-  div.innerText = '🎯 ' + label + ' = ' + score;
-  document.getElementById('throws').appendChild(div);
-}
-
-function finishTurn() {
-  state.currentThrow = [];
-  document.getElementById('throws').innerHTML = '';
-  speak('Nächster Zug');
-}
-
-function speak(text) {
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'de-DE';
-  speechSynthesis.speak(u);
 }
 </script></body>
 </html>
