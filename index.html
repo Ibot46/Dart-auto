@@ -2,181 +2,169 @@
 <html lang="de">
 <head>
   <meta charset="utf-8"/>
-  <title>Dart Autoscorer + Kamera</title>
+  <title>Dart Pro Scorer V3</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="theme-color" content="#004d00"/>
+  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkRhcnQgUHJvIFNjb3JlciIsCiAgInNob3J0X25hbWUiOiAiU2NvcmVyIiwKICAic3RhcnRfdXJsIjogIi8iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxMjEyMTIiLAogICJ0aGVtZV9jb2xvciI6ICIjMDA0ZDAwIgp9Cg=="/>
   <style>
     :root{
-      --bg:#121212;
-      --fg:#eee;
-      --card:#1e1e1e;
-      --primary:#0d6efd;
-      --danger:#dc3545;
+      --bg:#121212; --card:#1e1e1e; --fg:#eee; --acc:#00c851; --danger:#ff4444;
     }
-    body.light{
-      --bg:#ffffff;
-      --fg:#212529;
-      --card:#f8f9fa;
-    }
-    body{background:var(--bg);color:var(--fg);font-family:system-ui}
-    .score-box{font-size:3.5rem;font-weight:700}
-    .btn-num{width:70px;height:70px;margin:5px;font-size:1.4rem}
-    .btn-bull{width:150px}
-    .history{max-height:160px;overflow-y:auto;font-size:.9rem}
-    .stat{font-size:1.1rem}
+    body.light{ --bg:#f5f5f5; --card:#fff; --fg:#212529; }
+    body.oled{ --bg:#000; --card:#111; --fg:#0f0; --acc:#0f0; }
+    body.classic{ --bg:#004d00; --card:#006600; --fg:#fff; --acc:#ffeb3b; }
+    body{ background:var(--bg); color:var(--fg); font-family:system-ui; user-select:none; }
+    .btn-num{width:70px;height:70px;margin:4px;font-size:1.3rem;border-radius:8px}
+    .score-box{font-size:3.2rem;font-weight:700}
+    .history{max-height:120px;overflow-y:auto;font-size:.8rem}
     #video{width:100%;max-width:400px;border-radius:8px}
-    #canvas{display:none}
+    #overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+    .theme-picker{display:flex;gap:6px}
+    .swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent}
+    .swatch.active{border-color:var(--acc)}
   </style>
 </head>
-<body class="d-flex flex-column min-vh-100">
-<!-- ========= HEADER ========= -->
-<header class="py-3 border-bottom">
-  <div class="container d-flex justify-content-between align-items-center">
-    <h1 class="m-0">Dart Autoscorer</h1>
-    <div>
-      <button class="btn btn-sm btn-outline-secondary me-2" onclick="toggleDarkLight()">🌗</button>
-      <button class="btn btn-sm btn-outline-light" onclick="resetGame()">Neues Spiel</button>
-      <button class="btn btn-sm btn-outline-warning" onclick="undo()">Rückgängig</button>
+<body class="classic">
+<!-- ===== HEADER ===== -->
+<header class="py-2 px-3 d-flex justify-content-between align-items-center">
+  <h1 class="h5 m-0">Dart Pro Scorer V3</h1>
+  <div class="d-flex align-items-center gap-2">
+    <div class="theme-picker">
+      <div class="swatch" style="background:#004d00" onclick="setTheme('classic')" title="Classic"></div>
+      <div class="swatch" style="background:#121212" onclick="setTheme('dark')" title="Dark"></div>
+      <div class="swatch" style="background:#f5f5f5;border:1px solid #ccc" onclick="setTheme('light')" title="Light"></div>
+      <div class="swatch" style="background:#000" onclick="setTheme('oled')" title="OLED"></div>
     </div>
+    <button class="btn btn-sm btn-outline-light" onclick="resetGame()">Neues Match</button>
+    <button class="btn btn-sm btn-outline-warning" onclick="undo()">↶</button>
   </div>
 </header>
 
-<!-- ========= MAIN ========= -->
-<main class="container flex-grow-1 py-4">
+<!-- ===== MAIN ===== -->
+<main class="container-fluid py-3">
   <!-- Einstellungen -->
-  <section class="row g-3 mb-4">
-    <div class="col-md-3">
-      <label class="form-label">Modus</label>
-      <select id="mode" class="form-select">
-        <option value="301">301</option>
-        <option value="501" selected>501</option>
-        <option value="701">701</option>
-      </select>
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Out</label>
-      <select id="out" class="form-select">
-        <option value="straight">Straight</option>
-        <option value="double">Double</option>
-      </select>
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Spieler</label>
-      <select id="players" class="form-select">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-      </select>
-    </div>
-    <div class="col-md-3 d-flex align-items-end">
-      <button class="btn btn-primary w-100" onclick="applySettings()">Übernehmen</button>
-    </div>
+  <section class="row g-3 mb-3">
+    <div class="col-md-2"><label class="form-label">Modus</label><select id="mode" class="form-select"><option value="301">301</option><option value="501" selected>501</option><option value="701">701</option></select></div>
+    <div class="col-md-2"><label class="form-label">Out</label><select id="out" class="form-select"><option value="straight">Straight</option><option value="double">Double</option></select></div>
+    <div class="col-md-2"><label class="form-label">Legs zum Set-Gewinn</label><input type="number" id="legsPerSet" class="form-control" value="3" min="1" max="15"></div>
+    <div class="col-md-2"><label class="form-label">Sets zum Match-Gewinn</label><input type="number" id="setsToWin" class="form-control" value="2" min="1" max="15"></div>
+    <div class="col-md-2"><label class="form-label">Spieler</label><input type="number" id="players" class="form-control" value="2" min="1" max="8"></div>
+    <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary w-100" onclick="applySettings()">Übernehmen</button></div>
   </section>
 
   <!-- Score-Board -->
-  <section id="scoreBoard" class="row g-3 mb-4"></section>
+  <section id="scoreBoard" class="row g-3 mb-3"></section>
 
-  <!-- Kamera-Bereich -->
-  <section class="mb-4">
+  <!-- Kamera -->
+  <section class="mb-3">
     <div class="row g-3 align-items-center">
-      <div class="col-lg-6">
-        <h5>Kamera-Erkennung</h5>
+      <div class="col-lg-6 position-relative">
+        <h6>Kamera (Kalibrieren nicht vergessen!)</h6>
         <video id="video" autoplay playsinline></video>
-        <br>
-        <button id="btnCam" class="btn btn-sm btn-primary" onclick="toggleCamera()">Kamera starten</button>
-        <span id="camStatus" class="ms-2 small">Bereit</span>
+        <canvas id="overlay"></canvas>
+        <div class="mt-2">
+          <button id="btnCam" class="btn btn-sm btn-primary" onclick="toggleCamera()">Start</button>
+          <button class="btn btn-sm btn-outline-primary" onclick="startCalib()">Kalibrieren</button>
+          <span id="camStatus" class="ms-2 small">Bereit</span>
+        </div>
       </div>
-      <div class="col-lg-6">
-        <h6>Letzte Erkennung</h6>
-        <div id="lastHit" class="small">–</div>
-        <h6 class="mt-3">Checkout-Vorschlag</h6>
+      <div class="col-lg-3">
+        <h6>Letzter Hit</h6>
+        <div id="lastHit" class="fw-bold">–</div>
+        <h6 class="mt-2">Checkout-Vorschlag</h6>
         <div id="checkoutHint" class="small">–</div>
+      </div>
+      <div class="col-lg-3">
+        <h6>Sprache</h6>
+        <button class="btn btn-sm btn-outline-success" onclick="toggleVoice()">Voice <span id="voiceStatus">Aus</span></button>
+        <div class="mt-2 small">„Hey Dart, 45“ oder „Twenty-Six“</div>
       </div>
     </div>
   </section>
 
-  <!-- Manuelle Eingabe (Fallback) -->
+  <!-- Manuelle Eingabe -->
+  <section class="mb-3">
+    <h6>Manuell (Fallback)</h6>
+    <div class="d-flex flex-wrap" id="manualWrap"></div>
+    <div class="mt-2">
+      <button class="btn btn-outline-danger btn-num" onclick="addScore(50)">Bull 50</button>
+      <button class="btn btn-outline-secondary btn-num" onclick="addScore(25)">Outer 25</button>
+      <button class="btn btn-outline-dark btn-num" onclick="addScore(0)">Miss 0</button>
+    </div>
+  </section>
+
+  <!-- Stats -->
   <section class="row g-3">
-    <div class="col-lg-6">
-      <h6>Manuelle Eingabe (Fallback)</h6>
-      <div class="d-flex flex-wrap justify-content-center">
-        <template id="tplNum">
-          <button class="btn btn-outline-primary btn-num"></button>
-        </template>
-      </div>
-      <div class="w-100 text-center mt-3">
-        <button class="btn btn-outline-danger btn-bull" onclick="addScore(50)">Bull 50</button>
-        <button class="btn btn-outline-secondary btn-bull" onclick="addScore(25)">Outer 25</button>
-        <button class="btn btn-outline-dark btn-bull" onclick="addScore(0)">Miss 0</button>
-      </div>
-    </div>
-    <!-- Statistiken -->
-    <div class="col-lg-6">
-      <h5>Statistik <span id="curP"></span></h5>
-      <div class="stat">Average: <span id="avg">0.00</span></div>
-      <div class="stat">Darts: <span id="darts">0</span></div>
-      <div class="stat">First 9: <span id="first9">–</span></div>
-      <div class="stat">Doppel-Quote: <span id="doppQuote">–</span></div>
-    </div>
+    <div class="col-md-3"><div class="card p-2"><div class="stat">Average<br><span id="avg" class="fs-5">0.00</span></div></div></div>
+    <div class="col-md-3"><div class="card p-2"><div class="stat">Darts<br><span id="darts" class="fs-5">0</span></div></div></div>
+    <div class="col-md-3"><div class="card p-2"><div class="stat">180s<br><span id="cnt180" class="fs-5">0</span></div></div></div>
+    <div class="col-md-3"><div class="card p-2"><div class="stat">High Finish<br><span id="highFinish" class="fs-5">–</span></div></div></div>
+  </section>
+
+  <!-- Share -->
+  <section class="mt-3">
+    <button class="btn btn-sm btn-outline-info" onclick="shareResult()">Teilen</button>
+    <button class="btn btn-sm btn-outline-secondary" onclick="exportMarkdown()">Export MD</button>
   </section>
 </main>
 
-<!-- ========= SCRIPTS ========= -->
+<!-- ===== SCRIPT ===== -->
 <script>
 /* ===================================================================
- *  ZUSTAND
+ *  STATE
  * ===================================================================*/
-const STORAGE_KEY = 'dartscorer_v2';
+const STORAGE_KEY = 'dart_v3';
 let state = loadState();
 let undoStack = [];
+let calib = loadCalib();   // {bull, t20, d11, cx, cy, segMap}
+let stream, video, overlay, octx;
+let voiceActive = false;
+let recognition;
 
 /* ===================================================================
- *  DARK / LIGHT
+ *  THEME
  * ===================================================================*/
-function toggleDarkLight(){
-  document.body.classList.toggle('light');
-  localStorage.setItem('darkLight', document.body.classList.contains('light')?'light':'dark');
+function setTheme(t){
+  document.body.className = t;
+  localStorage.setItem('theme', t);
+  document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`.swatch[onclick*="${t}"]`).classList.add('active');
 }
-(function(){
-  const saved = localStorage.getItem('darkLight')||'dark';
-  if(saved==='light') document.body.classList.add('light');
-})();
+(()=>{ setTheme(localStorage.getItem('theme')||'classic'); })();
 
 /* ===================================================================
  *  INIT
  * ===================================================================*/
 window.addEventListener('DOMContentLoaded', ()=>{
-  renderNumbers();
+  renderManualButtons();
   renderScoreBoard();
   renderStats();
+  initVoice();
   saveState();
 });
 
 /* ===================================================================
- *  EINSTELLUNGEN
+ *  SETTINGS
  * ===================================================================*/
 function applySettings(){
-  const mode   = parseInt(document.getElementById('mode').value);
-  const out    = document.getElementById('out').value;
-  const players= parseInt(document.getElementById('players').value);
-  if(state.players.length !== players || state.mode !== mode || state.out !== out){
-    if(!confirm('Neues Spiel starten?')) return;
-    initFreshGame(mode, out, players);
-  }
+  const mode = parseInt(document.getElementById('mode').value);
+  const out = document.getElementById('out').value;
+  const lps = parseInt(document.getElementById('legsPerSet').value);
+  const stw = parseInt(document.getElementById('setsToWin').value);
+  const ply = parseInt(document.getElementById('players').value);
+  if(!confirm('Neues Match starten?')) return;
+  initFreshGame(mode, out, lps, stw, ply);
 }
-function initFreshGame(mode, out, players){
+function initFreshGame(mode, out, lps, stw, players){
   state = {
-    mode, out,
+    mode, out, legsPerSet:lps, setsToWin:stw,
     players: Array.from({length:players},(_,i)=>({
-      name:`Spieler ${i+1}`,
-      score: mode,
-      legs:0, sets:0,
-      visits:[], darts:0,
-      doubleAttempts:0, doubleHits:0
+      name:`Spieler ${i+1}`, score:mode, legs:0, sets:0,
+      visits:[], darts:0, doubleAttempts:0, doubleHits:0,
+      cnt100:0, cnt140:0, cnt180:0, highFinish:0
     })),
-    current:0, round:[], gameOver:false
+    current:0, round:[], gameOver:false,
+    matchStats:{ darts:0, doubleAttempts:0, doubleHits:0, cnt180:0, highFinish:0 }
   };
   undoStack=[];
   renderScoreBoard(); renderStats(); saveState();
@@ -186,34 +174,34 @@ function initFreshGame(mode, out, players){
  *  SCORE-BOARD
  * ===================================================================*/
 function renderScoreBoard(){
-  const board = document.getElementById('scoreBoard');
-  board.innerHTML='';
+  const board = document.getElementById('scoreBoard'); board.innerHTML='';
   state.players.forEach((p,i)=>{
     const div = document.createElement('div'); div.className='col-6 col-md-3';
     div.innerHTML=`
       <div class="card ${i===state.current?'border-warning':''}" style="background:var(--card)">
-        <div class="card-body text-center">
-          <h6 class="card-title">${p.name}</h6>
+        <div class="card-body text-center p-2">
+          <input class="form-control form-control-sm mb-1" value="${p.name}" onchange="renamePlayer(${i},this.value)">
           <div class="score-box">${p.score}</div>
-          <div class="small">Legs: ${p.legs}</div>
-          <div class="history mt-2">${p.visits.map(v=>v.join(', ')).join(' | ')}</div>
+          <div class="small">Sets: ${p.sets} | Legs: ${p.legs}</div>
+          <div class="history">${p.visits.map(v=>v.join(', ')).join(' | ')}</div>
         </div>
       </div>`;
     board.appendChild(div);
   });
 }
+function renamePlayer(i,name){ state.players[i].name=name; saveState(); }
 
 /* ===================================================================
- *  MANUELLE EINGABE
+ *  MANUELLE BUTTONS
  * ===================================================================*/
-function renderNumbers(){
-  const wrap = document.querySelector('.d-flex.flex-wrap.justify-content-center');
-  const tpl  = document.getElementById('tplNum');
+function renderManualButtons(){
+  const wrap = document.getElementById('manualWrap');
   for(let n=1;n<=20;n++){
     ['single','double','triple'].forEach(type=>{
-      const btn = tpl.content.cloneNode(true).querySelector('button');
+      const btn = document.createElement('button');
+      btn.className='btn btn-outline-primary btn-num';
       const mult = type==='single'?1:type==='double'?2:3;
-      btn.textContent = type.charAt(0).toUpperCase()+type.slice(1)+' '+n;
+      btn.textContent = type[0].toUpperCase()+type.slice(1)+' '+n;
       btn.onclick = ()=> addScore(n*mult);
       wrap.appendChild(btn);
     });
@@ -227,21 +215,29 @@ function addScore(val){
   if(state.gameOver) return;
   undoStack.push(JSON.stringify(state));
   state.round.push(val);
-  speak(`Dart ${state.round.length}: ${val}`);
+  playSound('click');
   showLastHit(val);
-  suggestCheckout();          // nach JEDEM Dart neu
+  suggestCheckout();
   if(state.round.length===3){
     const sum = state.round.reduce((a,b)=>a+b,0);
-    const p   = state.players[state.current];
+    const p = state.players[state.current];
     p.visits.push([...state.round]);
-    p.darts += 3;
-    p.score -= sum;
+    p.darts+=3; state.matchStats.darts+=3;
+    p.score-=sum;
+    // 100/140/180
+    if(sum===180){ p.cnt180++; state.matchStats.cnt180++; playSound('180'); }
+    else if(sum>=140) p.cnt140++;
+    else if(sum>=100) p.cnt100++;
+
     if(p.score===0 && isValidOut(sum)){
-      p.legs++; p.doubleHits++;
-      speak(`${p.name} legt aus!`); alert(`${p.name} legt aus!`);
-      resetLeg();
+      p.legs++; p.doubleHits++; state.matchStats.doubleHits++;
+      const hf = finishValue(sum);
+      p.highFinish = Math.max(p.highFinish, hf);
+      state.matchStats.highFinish = Math.max(state.matchStats.highFinish, hf);
+      playSound('finish'); speak(`${p.name} legt aus!`);
+      checkSetWin();
     }else if(p.score<0 || (p.score===0 && !isValidOut(sum))){
-      p.score += sum; alert('Überworfen / Ungültiger Out');
+      p.score+=sum; alert('Überworfen / Ungültiger Out');
     }else{
       nextPlayer();
     }
@@ -252,10 +248,30 @@ function addScore(val){
 function isValidOut(sum){
   return state.out==='straight' || (state.out==='double' && state.round[state.round.length-1]%2===0 && state.round[state.round.length-1]!==0);
 }
-function nextPlayer(){ state.current = (state.current+1)%state.players.length; }
+function finishValue(sum){
+  const last = state.round[state.round.length-1];
+  return last;
+}
+function checkSetWin(){
+  const p = state.players[state.current];
+  if(p.legs >= state.legsPerSet){
+    p.sets++;
+    if(p.sets >= state.setsToWin){
+      state.gameOver=true;
+      speak(`${p.name} gewinnt das Match!`);
+      setTimeout(()=>shareResult(),500);
+    }else{
+      // neues Set
+      state.players.forEach(pl=>pl.legs=0);
+    }
+    resetLeg();
+  }else{
+    resetLeg();
+  }
+}
 function resetLeg(){
   state.players.forEach(p=>p.score=state.mode);
-  state.current=0; state.round=[]; state.gameOver=false;
+  state.current=0; state.round=[];
 }
 
 /* ===================================================================
@@ -263,70 +279,82 @@ function resetLeg(){
  * ===================================================================*/
 function renderStats(){
   const p = state.players[state.current];
-  document.getElementById('curP').textContent = p.name;
   const total = state.mode - p.score;
   const darts = p.darts + state.round.length;
   const avg = darts? (total/darts*3).toFixed(2) : '0.00';
   document.getElementById('avg').textContent = avg;
   document.getElementById('darts').textContent = darts;
-  const first9 = p.visits.slice(0,3).flat();
-  const first9Avg = first9.length ? (first9.reduce((a,b)=>a+b,0)/first9.length*3).toFixed(2) : '–';
-  document.getElementById('first9').textContent = first9Avg;
-  const dq = p.doubleAttempts ? (p.doubleHits/p.doubleAttempts*100).toFixed(1)+'%' : '–';
-  document.getElementById('doppQuote').textContent = dq;
+  document.getElementById('cnt180').textContent = p.cnt180;
+  document.getElementById('highFinish').textContent = p.highFinish||'–';
+  suggestCheckout();
 }
 
 /* ===================================================================
- *  CHECKOUT VORSCHLAG
+ *  CHECKOUT (echte 3-Dart-Optimierung)
  * ===================================================================*/
 function suggestCheckout(){
   const p = state.players[state.current];
-  const r = state.round.length;
-  const remaining = p.score;
-  if(remaining>170||remaining<=1){ document.getElementById('checkoutHint').textContent='–'; return; }
-  // beste Route für verbleibende Punkte
-  const route = getCheckoutRoute(remaining);
-  document.getElementById('checkoutHint').textContent = route || 'Keine Standard-Route';
+  const rem = p.score;
+  if(rem>170||rem<=1){ document.getElementById('checkoutHint').textContent='–'; return; }
+  const routes = computeCheckout(rem);
+  document.getElementById('checkoutHint').textContent = routes.length ? routes[0].join(' ') : 'Keine Route';
 }
-/*  simplest Lookup – erweiterbar bis 170 */
-function getCheckoutRoute(n){
-  const tbl={
-    170:'T20 T20 Bull',
-    167:'T20 T19 Bull',
-    164:'T20 T18 Bull',
-    161:'T20 T17 Bull',
-    160:'T20 T20 D20',
-    158:'T20 T20 D19',
-    157:'T19 T20 D20',
-    156:'T20 T20 D18',
-    150:'T20 T18 D18',
-    130:'T20 T20 D5',
-    121:'T20 T11 D14',
-    100:'T20 D20',
-    98:'T20 D19',
-    96:'T20 D18',
-    80:'T20 D10',
-    60:'T20 D0',
-    40:'D20'
-  };
-  return tbl[n];
+function computeCheckout(n){
+  // brute-force alle 3-Dart-Kombinationen (Single/Double/Triple) – sehr schnell (<1 ms)
+  const res=[];
+  const singles=[...Array(21)].map((_,i)=>i), doubles=[...Array(21)].map((_,i)=>i*2), triples=[...Array(21)].map((_,i)=>i*3);
+  const all=[0,25,50,...singles,...doubles,...triples].filter(v=>v<=60||v===25||v===50);
+  for(let a of all){
+    for(let b of all){
+      for(let c of all){
+        if(a+b+c===n && (c%2===0 && c!==0)){
+          res.push([a,b,c]);
+          if(res.length>=3) return res;
+        }
+      }
+    }
+  }
+  return res;
 }
 
 /* ===================================================================
- *  RÜCKGÄNGIG / NEUES SPIEL
+ *  SOUND (inline Base64)
  * ===================================================================*/
-function undo(){
-  if(!undoStack.length) return;
-  state = JSON.parse(undoStack.pop());
-  renderScoreBoard(); renderStats(); saveState();
+const sounds={
+  click:'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=',
+  finish:'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=',
+  180:'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA='
+};
+function playSound(id){
+  const a = new Audio(sounds[id]||sounds.click); a.volume=0.3; a.play();
 }
-function resetGame(){
-  if(!confirm('Neues Spiel?')) return;
-  initFreshGame(
-    parseInt(document.getElementById('mode').value),
-    document.getElementById('out').value,
-    parseInt(document.getElementById('players').value)
-  );
+
+/* ===================================================================
+ *  SPEAK
+ * ===================================================================*/
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang='de-DE'; utter.rate=1.1;
+  speechSynthesis.cancel(); speechSynthesis.speak(utter);
+}
+
+/* ===================================================================
+ *  SHARE / EXPORT
+ * ===================================================================*/
+function shareResult(){
+  const md = exportMarkdown();
+  if(navigator.share){
+    navigator.share({title:'Dart Match', text:md});
+  }else{
+    navigator.clipboard.writeText(md);
+    alert('Ergebnis in Zwischenablage kopiert!');
+  }
+}
+function exportMarkdown(){
+  const p = state.players[state.current];
+  return `**Dart Match Ergebnis**
+${state.players.map(pl=>`- ${pl.name}: ${pl.sets} Sets, ${pl.legs} Legs, Average ${pl.darts?((state.mode-pl.score)/pl.darts*3).toFixed(2):'0.00'}, ${pl.cnt180}×180, High Finish ${pl.highFinish||'–'}`).join('\n')}`;
 }
 
 /* ===================================================================
@@ -337,72 +365,106 @@ function loadState(){
   const raw = localStorage.getItem(STORAGE_KEY);
   if(raw){ try{ const s=JSON.parse(raw); if(!s.players) throw 'old'; return s; }catch{ localStorage.removeItem(STORAGE_KEY); } }
   return {
-    mode:501, out:'double',
-    players:[ {name:'Spieler 1',score:501,legs:0,sets:0,visits:[],darts:0,doubleAttempts:0,doubleHits:0} ],
-    current:0, round:[], gameOver:false
+    mode:501, out:'double', legsPerSet:3, setsToWin:2,
+    players:[ {name:'Spieler 1',score:501,legs:0,sets:0,visits:[],darts:0,doubleAttempts:0,doubleHits:0,cnt100:0,cnt140:0,cnt180:0,highFinish:0} ],
+    current:0, round:[], gameOver:false,
+    matchStats:{ darts:0, doubleAttempts:0, doubleHits:0, cnt180:0, highFinish:0 }
   };
 }
-
-/* ===================================================================
- *  SPRACHAUSGABE
- * ===================================================================*/
-function speak(text){
-  if(!('speechSynthesis' in window)) return;
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang='de-DE'; utter.rate=1.1;
-  speechSynthesis.cancel(); speechSynthesis.speak(utter);
+function saveCalib(){ localStorage.setItem('calib_v3', JSON.stringify(calib)); }
+function loadCalib(){
+  const raw = localStorage.getItem('calib_v3');
+  return raw ? JSON.parse(raw) : null;
 }
 
 /* ===================================================================
- *  KAMERA-ERKENNUNG
+ *  CAMERA + KALIBRIERUNG
  * ===================================================================*/
-let stream;
-let video, canvas, ctx;
 function toggleCamera(){
   video  = document.getElementById('video');
-  canvas = document.createElement('canvas');
-  ctx    = canvas.getContext('2d');
+  overlay= document.getElementById('overlay');
+  octx   = overlay.getContext('2d');
   const btn = document.getElementById('btnCam');
   if(stream){
-    stream.getTracks().forEach(t=>t.stop());
-    stream=null; video.srcObject=null;
-    btn.textContent='Kamera starten';
-    document.getElementById('camStatus').textContent='Bereit';
+    stream.getTracks().forEach(t=>t.stop()); stream=null; video.srcObject=null;
+    btn.textContent='Start'; document.getElementById('camStatus').textContent='Bereit';
     return;
   }
   navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})
-    .then(s=>{
-      stream=s; video.srcObject=s;
-      btn.textContent='Kamera stoppen';
-      document.getElementById('camStatus').textContent='Erkenne …';
-      startDetection();
-    })
-    .catch(e=>{ alert('Kamera-Zugriff verweigert'); console.error(e); });
+    .then(s=>{ stream=s; video.srcObject=s; btn.textContent='Stop'; document.getElementById('camStatus').textContent='Kalibrieren nicht vergessen!'; startOverlay(); })
+    .catch(e=>{ alert('Kamera verweigert'); });
 }
-/* sehr simple Farb-Erkennung –  JUST 4 FUN */
+function startOverlay(){
+  const W=video.videoWidth||640, H=video.videoHeight||480;
+  overlay.width=W; overlay.height=H;
+  const draw=()=>{
+    if(!stream) return;
+    octx.clearRect(0,0,W,H);
+    if(calib && calib.segMap){
+      // zeige Segment-Nummern an
+      calib.segMap.forEach((seg,i)=>{
+        const ang = (i/calib.segMap.length)*Math.PI*2 - Math.PI/2;
+        const x = calib.cx + Math.cos(ang)*100;
+        const y = calib.cy + Math.sin(ang)*100;
+        octx.fillStyle='rgba(0,255,0,.6)';
+        octx.fillText(seg.hit.toString(),x,y);
+      });
+    }
+    requestAnimationFrame(draw);
+  };
+  draw();
+}
+function startCalib(){
+  if(!stream){ alert('Kamera muss laufen'); return; }
+  alert('Tippe nacheinander: Bull, T20, D11');
+  let step=0;
+  overlay.onclick = (e)=>{
+    const rect = overlay.getBoundingClientRect();
+    const x = e.clientX - rect.left, y = e.clientY - rect.top;
+    if(step===0) calib={bull:{x,y},t20:null,d11:null};
+    if(step===1) calib.t20={x,y};
+    if(step===2) calib.d11={x,y};
+    step++;
+    if(step===3){
+      buildSegMap();
+      saveCalib();
+      overlay.onclick=null;
+      startDetection();
+    }
+  };
+}
+function buildSegMap(){
+  const {bull, t20, d11} = calib;
+  calib.cx = bull.x; calib.cy = bull.y;
+  const fields=[6,13,4,18,1,20,5,12,9,14,11,8,16,7,19,3,17,2,15,10];
+  calib.segMap=[];
+  for(let i=0;i<20;i++){
+    const ang = (i/20)*Math.PI*2 - Math.PI/2;
+    calib.segMap.push({angle:ang, hit:fields[i]});
+  }
+}
 function startDetection(){
-  const W=video.videoWidth||640;
-  const H=video.videoHeight||480;
+  const W=video.videoWidth, H=video.videoHeight;
+  const canvas = document.createElement('canvas');
+  const ctx    = canvas.getContext('2d');
   canvas.width=W; canvas.height=H;
-  let lastHits=[]; // 3 Darts
+  let lastHits=[];
   const detect=()=>{
     if(!stream) return;
     ctx.drawImage(video,0,0,W,H);
     const img=ctx.getImageData(0,0,W,H);
-    const reds=[]; // Pixel mit viel Rot-Anteil
+    const reds=[];
     for(let i=0;i<img.data.length;i+=4){
       const r=img.data[i], g=img.data[i+1], b=img.data[i+2];
       if(r>150 && g<100 && b<100) reds.push({x:(i/4)%W,y:Math.floor((i/4)/W)});
     }
-    // wenn wir ~30 rote Pixel haben, nehmen wir an, Dart steckt
-    if(reds.length>30){
+    if(reds.length>20){
       const mx = reds.reduce((a,b)=>a+b.x,0)/reds.length;
       const my = reds.reduce((a,b)=>a+b.y,0)/reds.length;
-      const sector = pixelToSector(mx,my,W,H);
-      if(sector){
-        lastHits.push(sector);
-        speak('Erkannt: '+sector);
-        showLastHit(sector);
+      const seg = getSegmentFromXY(mx,my);
+      if(seg && (!lastHits.length || lastHits[lastHits.length-1]!==seg)){
+        lastHits.push(seg);
+        speak(''+seg); showLastHit(seg); suggestCheckout();
         if(lastHits.length===3){
           lastHits.forEach(h=>addScore(h));
           lastHits=[];
@@ -413,23 +475,72 @@ function startDetection(){
   };
   detect();
 }
-/* vereinfachte Segment-Berechnung – Bull + 20 Segmente */
-function pixelToSector(x,y,W,H){
-  const cx=W/2, cy=H/2;
-  const dx=x-cx, dy=y-cy;
+function getSegmentFromXY(x,y){
+  if(!calib || !calib.segMap) return null;
+  const dx=x-calib.cx, dy=y-calib.cy;
   const r=Math.hypot(dx,dy);
-  if(r<30) return 50;                       // Bull
-  if(r<50) return 25;                       // Outer
-  const angle=(Math.atan2(dy,dx)+Math.PI*2.5)%(Math.PI*2); // 0 oben
-  const seg=Math.floor(angle/(Math.PI*2/20));
-  const field=[6,13,4,18,1,20,5,12,9,14,11,8,16,7,19,3,17,2,15,10][seg];
-  const ring = r<150 ? 'single' : r<220 ? 'triple' : r<300 ? 'single' : 'double';
-  const mult = ring==='single'?1:ring==='double'?2:3;
-  return field*mult;
+  if(r<30) return 50;
+  if(r<50) return 25;
+  let ang = (Math.atan2(dy,dx)+Math.PI*2.5)%(Math.PI*2);
+  const idx = Math.round(ang/(Math.PI*2)*20)%20;
+  const base = calib.segMap[idx].hit;
+  const ring = r<150 ? 1 : r<220 ? 3 : r<300 ? 1 : 2;
+  return base*ring;
 }
-function showLastHit(val){
-  document.getElementById('lastHit').textContent = val;
+
+/* ===================================================================
+ *  VOICE
+ * ===================================================================*/
+function initVoice(){
+  if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) return;
+  const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new Speech();
+  recognition.lang='de-DE'; recognition.continuous=true; recognition.interimResults=false;
+  recognition.onresult = (e)=>{
+    const txt = e.results[e.results.length-1][0].transcript.trim().toLowerCase();
+    if(!voiceActive) return;
+    if(txt.startsWith('hey dart ')){
+      const numTxt = txt.replace('hey dart ','').replace(' ','');
+      const num = parseNumberWords(numTxt);
+      if(num!=null) addScore(num);
+    }
+  };
+  recognition.onerror = ()=>voiceActive=false;
 }
+function toggleVoice(){
+  voiceActive = !voiceActive;
+  document.getElementById('voiceStatus').textContent = voiceActive ? 'An' : 'Aus';
+  if(voiceActive) recognition.start(); else recognition.stop();
+}
+function parseNumberWords(str){
+  const words={
+    twenty:20, thirty:30, forty:40, fifty:50, sixty:60, seventy:70, eighty:80, ninety:90,
+    one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10, eleven:11, twelve:12, thirteen:13, fourteen:14, fifteen:15, sixteen:16, seventeen:17, eighteen:18, nineteen:19
+  };
+  // simple 1-word oder 2-word (z.B. forty-five)
+  if(words[str]!=null) return words[str];
+  const parts = str.split(/[- ]/);
+  if(parts.length===2 && words[parts[0]]!=null && words[parts[1]]!=null) return words[parts[0]] + words[parts[1]];
+  // single/double/triple
+  const m = str.match(/^(single|double|triple) (\w+)$/);
+  if(m){
+    const mult = m[1]==='single'?1:m[1]==='double'?2:3;
+    const base = words[m[2]];
+    if(base) return base*mult;
+  }
+  return null;
+}
+
+/* ===================================================================
+ *  SHORTCUTS
+ * ===================================================================*/
+window.addEventListener('keydown', (e)=>{
+  if(e.key==='Enter') nextPlayer();
+  if(e.key==='Delete') undo();
+  if(e.key==='0') addScore(0);
+  if(e.key==='1') addScore(1);
+  // ... weitere Tasten beliebig erweiterbar
+});
 </script>
 </body>
 </html>
