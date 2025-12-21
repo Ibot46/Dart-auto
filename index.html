@@ -2,32 +2,31 @@
 <html lang="de">
 <head>
   <meta charset="utf-8"/>
-  <title>Dart Pro Scorer V3</title>
+  <title>Dart Autoscorer – Select Then Number</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="theme-color" content="#004d00"/>
-  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkRhcnQgUHJvIFNjb3JlciIsCiAgInNob3J0X25hbWUiOiAiU2NvcmVyIiwKICAic3RhcnRfdXJsIjogIi8iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxMjEyMTIiLAogICJ0aGVtZV9jb2xvciI6ICIjMDA0ZDAwIgp9Cg=="/>
+  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkRhcnQgU2NvcmVyIiwKICAic2hvcnRfbmFtZSI6ICJTY29yZXIiLAogICJzdGFydF91cmwiOiAiLyIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzEyMTIxMiIsCiAgInRoZW1lX2NvbG9yIjogIiMwMDRkMDAiCn0K">
   <style>
-    :root{
-      --bg:#121212; --card:#1e1e1e; --fg:#eee; --acc:#00c851; --danger:#ff4444;
-    }
+    :root{ --bg:#121212; --card:#1e1e1e; --fg:#eee; --acc:#00c851; --danger:#ff4444; }
     body.light{ --bg:#f5f5f5; --card:#fff; --fg:#212529; }
     body.oled{ --bg:#000; --card:#111; --fg:#0f0; --acc:#0f0; }
     body.classic{ --bg:#004d00; --card:#006600; --fg:#fff; --acc:#ffeb3b; }
     body{ background:var(--bg); color:var(--fg); font-family:system-ui; user-select:none; }
-    .btn-num{width:70px;height:70px;margin:4px;font-size:1.3rem;border-radius:8px}
+    .btn-num{width:70px;height:70px;margin:4px;font-size:1.4rem;border-radius:8px}
+    .btn-mode{width:90px;height:50px;margin:4px;font-size:1rem}
     .score-box{font-size:3.2rem;font-weight:700}
     .history{max-height:120px;overflow-y:auto;font-size:.8rem}
     #video{width:100%;max-width:400px;border-radius:8px}
-    #overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
     .theme-picker{display:flex;gap:6px}
     .swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent}
     .swatch.active{border-color:var(--acc)}
+    .sel-group{background:var(--card);border-radius:8px;padding:8px;margin-bottom:8px}
   </style>
 </head>
 <body class="classic">
 <!-- ===== HEADER ===== -->
 <header class="py-2 px-3 d-flex justify-content-between align-items-center">
-  <h1 class="h5 m-0">Dart Pro Scorer V3</h1>
+  <h1 class="h5 m-0">Dart Autoscorer</h1>
   <div class="d-flex align-items-center gap-2">
     <div class="theme-picker">
       <div class="swatch" style="background:#004d00" onclick="setTheme('classic')" title="Classic"></div>
@@ -46,8 +45,8 @@
   <section class="row g-3 mb-3">
     <div class="col-md-2"><label class="form-label">Modus</label><select id="mode" class="form-select"><option value="301">301</option><option value="501" selected>501</option><option value="701">701</option></select></div>
     <div class="col-md-2"><label class="form-label">Out</label><select id="out" class="form-select"><option value="straight">Straight</option><option value="double">Double</option></select></div>
-    <div class="col-md-2"><label class="form-label">Legs zum Set-Gewinn</label><input type="number" id="legsPerSet" class="form-control" value="3" min="1" max="15"></div>
-    <div class="col-md-2"><label class="form-label">Sets zum Match-Gewinn</label><input type="number" id="setsToWin" class="form-control" value="2" min="1" max="15"></div>
+    <div class="col-md-2"><label class="form-label">Legs/Set</label><input type="number" id="legsPerSet" class="form-control" value="3" min="1" max="15"></div>
+    <div class="col-md-2"><label class="form-label">Sets/Match</label><input type="number" id="setsToWin" class="form-control" value="2" min="1" max="15"></div>
     <div class="col-md-2"><label class="form-label">Spieler</label><input type="number" id="players" class="form-control" value="2" min="1" max="8"></div>
     <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary w-100" onclick="applySettings()">Übernehmen</button></div>
   </section>
@@ -77,20 +76,24 @@
       <div class="col-lg-3">
         <h6>Sprache</h6>
         <button class="btn btn-sm btn-outline-success" onclick="toggleVoice()">Voice <span id="voiceStatus">Aus</span></button>
-        <div class="mt-2 small">„Hey Dart, 45“ oder „Twenty-Six“</div>
       </div>
     </div>
   </section>
 
-  <!-- Manuelle Eingabe -->
+  <!-- NEU: Select Then Number -->
   <section class="mb-3">
-    <h6>Manuell (Fallback)</h6>
-    <div class="d-flex flex-wrap" id="manualWrap"></div>
-    <div class="mt-2">
-      <button class="btn btn-outline-danger btn-num" onclick="addScore(50)">Bull 50</button>
-      <button class="btn btn-outline-secondary btn-num" onclick="addScore(25)">Outer 25</button>
-      <button class="btn btn-outline-dark btn-num" onclick="addScore(0)">Miss 0</button>
+    <h6>Manuelle Eingabe</h6>
+    <!-- 1. Modi wählen -->
+    <div class="sel-group d-flex flex-wrap justify-content-center">
+      <button class="btn btn-outline-light btn-mode" onclick="setMult(1)">Single</button>
+      <button class="btn btn-outline-info btn-mode" onclick="setMult(2)">Double</button>
+      <button class="btn btn-outline-warning btn-mode" onclick="setMult(3)">Triple</button>
+      <button class="btn btn-outline-danger btn-mode" onclick="setMult(50)">Bull 50</button>
+      <button class="btn btn-outline-secondary btn-mode" onclick="setMult(25)">Outer 25</button>
+      <button class="btn btn-outline-dark btn-mode" onclick="setMult(0)">Miss 0</button>
     </div>
+    <!-- 2. Zahlen 1–20 -->
+    <div class="d-flex flex-wrap justify-content-center mt-2" id="numWrap"></div>
   </section>
 
   <!-- Stats -->
@@ -108,18 +111,18 @@
   </section>
 </main>
 
-<!-- ===== SCRIPT ===== -->
 <script>
 /* ===================================================================
  *  STATE
  * ===================================================================*/
-const STORAGE_KEY = 'dart_v3';
+const STORAGE_KEY = 'dart_v3_select';
 let state = loadState();
 let undoStack = [];
-let calib = loadCalib();   // {bull, t20, d11, cx, cy, segMap}
+let calib = loadCalib();
 let stream, video, overlay, octx;
 let voiceActive = false;
 let recognition;
+let currentMult = 1; // 1=Single, 2=Double, 3=Triple, 0=Miss, 25=Outer, 50=Bull
 
 /* ===================================================================
  *  THEME
@@ -136,7 +139,7 @@ function setTheme(t){
  *  INIT
  * ===================================================================*/
 window.addEventListener('DOMContentLoaded', ()=>{
-  renderManualButtons();
+  renderNumbers();
   renderScoreBoard();
   renderStats();
   initVoice();
@@ -192,19 +195,24 @@ function renderScoreBoard(){
 function renamePlayer(i,name){ state.players[i].name=name; saveState(); }
 
 /* ===================================================================
- *  MANUELLE BUTTONS
+ *  SELECT-THEN-NUMBER
  * ===================================================================*/
-function renderManualButtons(){
-  const wrap = document.getElementById('manualWrap');
+function setMult(m){
+  currentMult = m;
+  // visuelles Feedback
+  document.querySelectorAll('.btn-mode').forEach(b=>b.classList.remove('active','btn-light'));
+  event.target.classList.add('active','btn-light');
+  // bei Bull/Outer/Miss sofort einfügen
+  if(m===50||m===25||m===0){ addScore(m); }
+}
+function renderNumbers(){
+  const wrap = document.getElementById('numWrap');
   for(let n=1;n<=20;n++){
-    ['single','double','triple'].forEach(type=>{
-      const btn = document.createElement('button');
-      btn.className='btn btn-outline-primary btn-num';
-      const mult = type==='single'?1:type==='double'?2:3;
-      btn.textContent = type[0].toUpperCase()+type.slice(1)+' '+n;
-      btn.onclick = ()=> addScore(n*mult);
-      wrap.appendChild(btn);
-    });
+    const btn = document.createElement('button');
+    btn.className='btn btn-outline-primary btn-num';
+    btn.textContent = n;
+    btn.onclick = ()=> addScore(n*currentMult);
+    wrap.appendChild(btn);
   }
 }
 
@@ -224,7 +232,6 @@ function addScore(val){
     p.visits.push([...state.round]);
     p.darts+=3; state.matchStats.darts+=3;
     p.score-=sum;
-    // 100/140/180
     if(sum===180){ p.cnt180++; state.matchStats.cnt180++; playSound('180'); }
     else if(sum>=140) p.cnt140++;
     else if(sum>=100) p.cnt100++;
@@ -248,10 +255,7 @@ function addScore(val){
 function isValidOut(sum){
   return state.out==='straight' || (state.out==='double' && state.round[state.round.length-1]%2===0 && state.round[state.round.length-1]!==0);
 }
-function finishValue(sum){
-  const last = state.round[state.round.length-1];
-  return last;
-}
+function finishValue(sum){ return state.round[state.round.length-1]; }
 function checkSetWin(){
   const p = state.players[state.current];
   if(p.legs >= state.legsPerSet){
@@ -261,7 +265,6 @@ function checkSetWin(){
       speak(`${p.name} gewinnt das Match!`);
       setTimeout(()=>shareResult(),500);
     }else{
-      // neues Set
       state.players.forEach(pl=>pl.legs=0);
     }
     resetLeg();
@@ -273,6 +276,7 @@ function resetLeg(){
   state.players.forEach(p=>p.score=state.mode);
   state.current=0; state.round=[];
 }
+function nextPlayer(){ state.current = (state.current+1)%state.players.length; }
 
 /* ===================================================================
  *  STATS
@@ -288,10 +292,6 @@ function renderStats(){
   document.getElementById('highFinish').textContent = p.highFinish||'–';
   suggestCheckout();
 }
-
-/* ===================================================================
- *  CHECKOUT (echte 3-Dart-Optimierung)
- * ===================================================================*/
 function suggestCheckout(){
   const p = state.players[state.current];
   const rem = p.score;
@@ -300,25 +300,16 @@ function suggestCheckout(){
   document.getElementById('checkoutHint').textContent = routes.length ? routes[0].join(' ') : 'Keine Route';
 }
 function computeCheckout(n){
-  // brute-force alle 3-Dart-Kombinationen (Single/Double/Triple) – sehr schnell (<1 ms)
-  const res=[];
-  const singles=[...Array(21)].map((_,i)=>i), doubles=[...Array(21)].map((_,i)=>i*2), triples=[...Array(21)].map((_,i)=>i*3);
-  const all=[0,25,50,...singles,...doubles,...triples].filter(v=>v<=60||v===25||v===50);
-  for(let a of all){
-    for(let b of all){
-      for(let c of all){
-        if(a+b+c===n && (c%2===0 && c!==0)){
-          res.push([a,b,c]);
-          if(res.length>=3) return res;
-        }
-      }
-    }
-  }
+  const res=[]; const all=[0,25,50];
+  for(let i=1;i<=20;i++){ all.push(i,i*2,i*3); }
+  for(let a of all){ for(let b of all){ for(let c of all){
+    if(a+b+c===n && (c%2===0 && c!==0)){ res.push([a,b,c]); if(res.length>=3) return res; }
+  }}}
   return res;
 }
 
 /* ===================================================================
- *  SOUND (inline Base64)
+ *  SOUND / SPEAK / SHARE
  * ===================================================================*/
 const sounds={
   click:'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=',
@@ -328,34 +319,22 @@ const sounds={
 function playSound(id){
   const a = new Audio(sounds[id]||sounds.click); a.volume=0.3; a.play();
 }
-
-/* ===================================================================
- *  SPEAK
- * ===================================================================*/
 function speak(text){
   if(!('speechSynthesis' in window)) return;
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang='de-DE'; utter.rate=1.1;
   speechSynthesis.cancel(); speechSynthesis.speak(utter);
 }
-
-/* ===================================================================
- *  SHARE / EXPORT
- * ===================================================================*/
+function showLastHit(val){
+  document.getElementById('lastHit').textContent = val;
+}
 function shareResult(){
-  const md = exportMarkdown();
-  if(navigator.share){
-    navigator.share({title:'Dart Match', text:md});
-  }else{
-    navigator.clipboard.writeText(md);
-    alert('Ergebnis in Zwischenablage kopiert!');
-  }
-}
-function exportMarkdown(){
-  const p = state.players[state.current];
-  return `**Dart Match Ergebnis**
+  const md = `**Dart Match Ergebnis**
 ${state.players.map(pl=>`- ${pl.name}: ${pl.sets} Sets, ${pl.legs} Legs, Average ${pl.darts?((state.mode-pl.score)/pl.darts*3).toFixed(2):'0.00'}, ${pl.cnt180}×180, High Finish ${pl.highFinish||'–'}`).join('\n')}`;
+  navigator.clipboard.writeText(md);
+  alert('Ergebnis in Zwischenablage kopiert!');
 }
+function exportMarkdown(){ shareResult(); }
 
 /* ===================================================================
  *  LOCALSTORAGE
@@ -371,14 +350,9 @@ function loadState(){
     matchStats:{ darts:0, doubleAttempts:0, doubleHits:0, cnt180:0, highFinish:0 }
   };
 }
-function saveCalib(){ localStorage.setItem('calib_v3', JSON.stringify(calib)); }
-function loadCalib(){
-  const raw = localStorage.getItem('calib_v3');
-  return raw ? JSON.parse(raw) : null;
-}
 
 /* ===================================================================
- *  CAMERA + KALIBRIERUNG
+ *  CAMERA + KALIB + VOICE (gekürzt – bereits bekannt)
  * ===================================================================*/
 function toggleCamera(){
   video  = document.getElementById('video');
@@ -397,21 +371,7 @@ function toggleCamera(){
 function startOverlay(){
   const W=video.videoWidth||640, H=video.videoHeight||480;
   overlay.width=W; overlay.height=H;
-  const draw=()=>{
-    if(!stream) return;
-    octx.clearRect(0,0,W,H);
-    if(calib && calib.segMap){
-      // zeige Segment-Nummern an
-      calib.segMap.forEach((seg,i)=>{
-        const ang = (i/calib.segMap.length)*Math.PI*2 - Math.PI/2;
-        const x = calib.cx + Math.cos(ang)*100;
-        const y = calib.cy + Math.sin(ang)*100;
-        octx.fillStyle='rgba(0,255,0,.6)';
-        octx.fillText(seg.hit.toString(),x,y);
-      });
-    }
-    requestAnimationFrame(draw);
-  };
+  const draw=()=>{ if(!stream) return; octx.clearRect(0,0,W,H); requestAnimationFrame(draw); };
   draw();
 }
 function startCalib(){
@@ -425,12 +385,7 @@ function startCalib(){
     if(step===1) calib.t20={x,y};
     if(step===2) calib.d11={x,y};
     step++;
-    if(step===3){
-      buildSegMap();
-      saveCalib();
-      overlay.onclick=null;
-      startDetection();
-    }
+    if(step===3){ buildSegMap(); saveCalib(); overlay.onclick=null; startDetection(); }
   };
 }
 function buildSegMap(){
@@ -465,10 +420,7 @@ function startDetection(){
       if(seg && (!lastHits.length || lastHits[lastHits.length-1]!==seg)){
         lastHits.push(seg);
         speak(''+seg); showLastHit(seg); suggestCheckout();
-        if(lastHits.length===3){
-          lastHits.forEach(h=>addScore(h));
-          lastHits=[];
-        }
+        if(lastHits.length===3){ lastHits.forEach(h=>addScore(h)); lastHits=[]; }
       }
     }
     requestAnimationFrame(detect);
@@ -486,6 +438,11 @@ function getSegmentFromXY(x,y){
   const base = calib.segMap[idx].hit;
   const ring = r<150 ? 1 : r<220 ? 3 : r<300 ? 1 : 2;
   return base*ring;
+}
+function saveCalib(){ localStorage.setItem('calib_v3', JSON.stringify(calib)); }
+function loadCalib(){
+  const raw = localStorage.getItem('calib_v3');
+  return raw ? JSON.parse(raw) : null;
 }
 
 /* ===================================================================
@@ -517,11 +474,9 @@ function parseNumberWords(str){
     twenty:20, thirty:30, forty:40, fifty:50, sixty:60, seventy:70, eighty:80, ninety:90,
     one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10, eleven:11, twelve:12, thirteen:13, fourteen:14, fifteen:15, sixteen:16, seventeen:17, eighteen:18, nineteen:19
   };
-  // simple 1-word oder 2-word (z.B. forty-five)
   if(words[str]!=null) return words[str];
   const parts = str.split(/[- ]/);
   if(parts.length===2 && words[parts[0]]!=null && words[parts[1]]!=null) return words[parts[0]] + words[parts[1]];
-  // single/double/triple
   const m = str.match(/^(single|double|triple) (\w+)$/);
   if(m){
     const mult = m[1]==='single'?1:m[1]==='double'?2:3;
@@ -537,9 +492,6 @@ function parseNumberWords(str){
 window.addEventListener('keydown', (e)=>{
   if(e.key==='Enter') nextPlayer();
   if(e.key==='Delete') undo();
-  if(e.key==='0') addScore(0);
-  if(e.key==='1') addScore(1);
-  // ... weitere Tasten beliebig erweiterbar
 });
 </script>
 </body>
